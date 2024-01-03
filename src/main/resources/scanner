@@ -1,0 +1,22 @@
+https://lalitkumarb.wordpress.com/2015/01/06/sql-to-search-for-a-value-in-all-columns-of-all-atbles-in-an-entire-schema/
+https://stackoverflow.com/questions/208493/search-all-fields-in-all-tables-for-a-specific-value-oracle
+SQL> variable val varchar2(10)
+SQL> exec :val := 'KING'
+
+PL/SQL procedure successfully completed.
+
+SQL> SELECT DISTINCT SUBSTR (:val, 1, 11) "Searchword",
+  2    SUBSTR (table_name, 1, 14) "Table",
+  3    SUBSTR (column_name, 1, 14) "Column"
+  4  FROM cols,
+  5    TABLE (xmlsequence (dbms_xmlgen.getxmltype ('select '
+  6    || column_name
+  7    || ' from '
+  8    || table_name
+  9    || ' where upper('
+ 10    || column_name
+ 11    || ') like upper(''%'
+ 12    || :val
+ 13    || '%'')' ).extract ('ROWSET/ROW/*') ) ) t
+ 14  ORDER BY "Table"
+ 15  /
