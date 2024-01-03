@@ -20,3 +20,26 @@ SQL> SELECT DISTINCT SUBSTR (:val, 1, 11) "Searchword",
  13    || '%'')' ).extract ('ROWSET/ROW/*') ) ) t
  14  ORDER BY "Table"
  15  /
+----------------
+DECLARE
+  match_count INTEGER;
+  -- Type the owner of the tables you want to search.
+  v_owner VARCHAR2(255) :='DEBASHISH';
+  -- Type the data type you're looking for (in CAPS). Examples include: VARCHAR2, NUMBER, etc.
+  v_data_type VARCHAR2(255) :='VARCHAR2';
+  -- Type the string you are looking for.
+  v_search_string VARCHAR2(4000) :='Harry';
+BEGIN
+  dbms_output.put_line( 'Starting the search...' );
+  FOR t IN (SELECT table_name, column_name FROM all_tab_cols where owner='DEBASHISH' and data_type like 'VARCHAR%') LOOP
+    EXECUTE IMMEDIATE 
+    'SELECT COUNT(*) FROM DEBASHISH.'||t.table_name||' WHERE LOWER('||t.column_name||') LIKE :1'
+    INTO match_count
+    USING LOWER('%'||v_search_string||'%');
+    IF match_count > 0 THEN
+      dbms_output.put_line( t.table_name ||' '||t.column_name||' '||match_count );
+    END IF;
+  END LOOP;
+END;
+
+--SET SERVEROUTPUT ON;
