@@ -1,0 +1,8 @@
+CREATE TABLE audit_table (
+    audit_id NUMBER PRIMARY KEY,
+    load_id VARCHAR2(50),
+    timestamp TIMESTAMP,
+    step VARCHAR2(50),
+    status VARCHAR2(20),
+    details VARCHAR2(255)
+);
