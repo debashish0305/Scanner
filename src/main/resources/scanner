@@ -43,3 +43,36 @@ BEGIN
 END;
 
 --SET SERVEROUTPUT ON;
+
+DECLARE
+   TYPE search_string_list IS TABLE OF VARCHAR2(100);
+   v_search_strings search_string_list := search_string_list('text1', 'text2', 'text3'); -- Add your search strings here
+   v_sql         VARCHAR2(1000);
+   v_count       NUMBER;
+BEGIN
+   FOR search_text IN v_search_strings
+   LOOP
+      FOR t IN (SELECT table_name
+                  FROM all_tables
+                 WHERE owner = 'YOUR_SCHEMA_NAME') 
+      LOOP
+         FOR c IN (SELECT column_name
+                      FROM all_tab_columns
+                     WHERE table_name = t.table_name
+                       AND data_type IN ('VARCHAR2', 'CHAR', 'CLOB'))
+         LOOP
+            v_sql :=
+                  'SELECT COUNT(*) FROM ' || t.table_name || ' WHERE ' || c.column_name || ' LIKE ''%' || search_text || '%''';
+            EXECUTE IMMEDIATE v_sql INTO v_count;
+
+            IF v_count > 0 THEN
+               DBMS_OUTPUT.put_line('Table: ' || t.table_name || ', Column: ' || c.column_name || ', Search Text: ' || search_text || ', Count: ' || v_count);
+               -- You can perform additional actions here based on your requirements
+            END IF;
+         END LOOP;
+      END LOOP;
+   END LOOP;
+END;
+/
+
+
