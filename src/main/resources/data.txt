@@ -3,3 +3,32 @@ SharedValue
 harry@example.com
 199.99
 70000
+
+#!/bin/bash
+
+# Oracle Database Connection Details
+DB_USER="your_username"
+DB_PASS="your_password"
+DB_CONN="your_connection_string"  # Example: localhost:1521/your_database
+
+# CSV file details
+CSV_FILE="your_data.csv"
+
+# SQL Query to delete records
+DELETE_QUERY="DELETE FROM target_table WHERE (column1, column2) IN (SELECT column1, column2 FROM source_table);"
+
+# SQL Query to count inserted records
+COUNT_QUERY="SELECT COUNT(*) FROM target_table;"
+
+# Run SQL*Loader with the DELETE query
+echo "$DELETE_QUERY" | sqlplus -S "${DB_USER}/${DB_PASS}@${DB_CONN}"
+
+# Count the records in the CSV file
+CSV_RECORD_COUNT=$(wc -l < "${CSV_FILE}")
+
+# Count the records in the target table
+INSERT_COUNT=$(echo "$COUNT_QUERY" | sqlplus -S "${DB_USER}/${DB_PASS}@${DB_CONN}")
+
+# Compare and display results
+echo "Inserted records: $INSERT_COUNT"
+echo "Records in CSV file: $CSV_RECORD_COUNT"
