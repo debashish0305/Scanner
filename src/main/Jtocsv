@@ -12,6 +12,12 @@ python3 - <<END >> "$csv_file"
 import json
 import csv
 
+# Recursive function to navigate nested nodes
+def get_nested_node(data, keys):
+    for key in keys:
+        data = data.get(key, {})
+    return data
+
 # JSON input
 json_input = '$json_input'
 nested_node = '$nested_node'
@@ -19,8 +25,8 @@ nested_node = '$nested_node'
 # Load JSON
 data = json.loads(json_input)
 
-# Get the nested array node
-nested_array = eval(f'data.get({nested_node}, [])')
+# Get the nested array node using the recursive function
+nested_array = get_nested_node(data, nested_node.split('.'))
 
 # Open CSV file in append mode
 with open("$csv_file", 'a', newline='') as csvfile:
