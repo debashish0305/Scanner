@@ -6,26 +6,26 @@
 python3 <<END
 import csv
 
-def flatten_json(json_data, prefix=''):
+def flatten_json(json_data):
     flattened = {}
     for key, value in json_data.items():
-        new_key = f"{prefix}{key}"
         if isinstance(value, dict):
-            flattened.update(flatten_json(value, new_key + '_'))
+            flattened.update(flatten_json(value))
         elif isinstance(value, list):
             for i, item in enumerate(value):
                 if isinstance(item, dict):
-                    flattened.update(flatten_json(item, f"{new_key}_{i}_"))
+                    flattened.update(flatten_json(item))
         else:
-            flattened[new_key] = value
+            flattened[key] = value
     return flattened
 
-def write_csv(json_data, csv_file):
+def write_csv(json_data, csv_file, selected_headers):
     with open(csv_file, 'w', newline='') as csvfile:
-        fieldnames = flatten_json(json_data).keys()
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer = csv.DictWriter(csvfile, fieldnames=selected_headers)
         writer.writeheader()
-        writer.writerow(flatten_json(json_data))
+        flattened_data = flatten_json(json_data)
+        row = {header: flattened_data.get(header, '') for header in selected_headers}
+        writer.writerow(row)
 
 # Example usage:
 nested_json_data = {
@@ -38,5 +38,8 @@ nested_json_data = {
     "hobbies": ["Reading", "Traveling"]
 }
 
-write_csv(nested_json_data, 'output.csv')
+# Specify the headers you want to include in the CSV
+selected_headers = ["age", "zipcode"]
+
+write_csv(nested_json_data, 'output.csv', selected_headers)
 END
