@@ -1,45 +1,47 @@
 #!/bin/bash
 
-# Your shell script logic here
+# Define an array of JSON inputs
+json_inputs=('{"name": "John", "details": {"age": 30, "city": "New York"}, "scores": [90, 85, 95]}'
+             '{"name": "Alice", "details": {"age": 25, "city": "London"}, "scores": [88, 92, 95]}')
 
-# Python script
-python3 <<END
+csv_file='output.csv'
+
+# Remove content of existing CSV file
+> "$csv_file"
+
+# Python script to flatten JSON to CSV
+python3 - <<END >> "$csv_file"
+import json
 import csv
 
-def flatten_json(json_data):
-    flattened = {}
-    for key, value in json_data.items():
-        if isinstance(value, dict):
-            flattened.update(flatten_json(value))
-        elif isinstance(value, list):
-            for i, item in enumerate(value):
-                if isinstance(item, dict):
-                    flattened.update(flatten_json(item))
-        else:
-            flattened[key] = value
-    return flattened
+# JSON inputs
+json_inputs = $json_inputs
 
-def write_csv(json_data, csv_file, selected_headers):
-    with open(csv_file, 'w', newline='') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=selected_headers)
-        writer.writeheader()
-        flattened_data = flatten_json(json_data)
-        row = {header: flattened_data.get(header, '') for header in selected_headers}
-        writer.writerow(row)
+# Open CSV file in append mode
+with open("$csv_file", 'a', newline='') as csvfile:
+    csv_writer = csv.writer(csvfile)
 
-# Example usage:
-nested_json_data = {
-    "name": "John",
-    "info": [
-        {"age": 25, "address": {"city": "New York", "zipcode": "10001"}},
-        {"age": 30, "address": {"city": "San Francisco", "zipcode": "94105"}}
-    ],
-    "skills": ["Python", "JavaScript"],
-    "hobbies": ["Reading", "Traveling"]
-}
+    # Write header
+    header_written = False
 
-# Specify the headers you want to include in the CSV
-selected_headers = ["age", "zipcode"]
+    # Loop through JSON inputs
+    for json_input in json_inputs:
+        # Load JSON
+        data = json.loads(json_input)
 
-write_csv(nested_json_data, 'output.csv', selected_headers)
+        # Flatten JSON
+        flattened_data = {
+            "name": data.get("name", ""),
+            "age": data.get("details", {}).get("age", ""),
+            "city": data.get("details", {}).get("city", ""),
+            "scores": ",".join(map(str, data.get("scores", [])))
+        }
+
+        # Write header if not already written
+        if not header_written:
+            csv_writer.writerow(flattened_data.keys())
+            header_written = True
+
+        # Write flattened data
+        csv_writer.writerow(flattened_data.values())
 END
