@@ -1,21 +1,26 @@
 #!/bin/bash
 
-# Define an array of JSON inputs
-json_inputs=('{"name": "John", "details": {"age": 30, "city": "New York"}, "scores": [90, 85, 95]}'
-             '{"name": "Alice", "details": {"age": 25, "city": "London"}, "scores": [88, 92, 95]}')
-
+json_input='{"people": [{"name": "John", "age": 30}, {"name": "Alice", "age": 25}], "city": "New York"}'
+array_node='people'
 csv_file='output.csv'
 
 # Remove content of existing CSV file
 > "$csv_file"
 
-# Python script to flatten JSON to CSV
+# Python script to flatten JSON array to CSV
 python3 - <<END >> "$csv_file"
 import json
 import csv
 
-# JSON inputs
-json_inputs = $json_inputs
+# JSON input
+json_input = '$json_input'
+array_node = '$array_node'
+
+# Load JSON
+data = json.loads(json_input)
+
+# Get the array node
+json_array = data.get(array_node, [])
 
 # Open CSV file in append mode
 with open("$csv_file", 'a', newline='') as csvfile:
@@ -24,18 +29,10 @@ with open("$csv_file", 'a', newline='') as csvfile:
     # Write header
     header_written = False
 
-    # Loop through JSON inputs
-    for json_input in json_inputs:
-        # Load JSON
-        data = json.loads(json_input)
-
-        # Flatten JSON
-        flattened_data = {
-            "name": data.get("name", ""),
-            "age": data.get("details", {}).get("age", ""),
-            "city": data.get("details", {}).get("city", ""),
-            "scores": ",".join(map(str, data.get("scores", [])))
-        }
+    # Loop through array elements
+    for entry in json_array:
+        # Flatten JSON entry
+        flattened_data = {key: entry[key] for key in entry.keys()}
 
         # Write header if not already written
         if not header_written:
