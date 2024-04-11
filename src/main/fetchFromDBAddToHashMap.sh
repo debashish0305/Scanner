@@ -103,3 +103,55 @@ EOF
 
 echo "Output from SQL*Plus:"
 echo "$output"
+##################################################
+#!/bin/bash
+
+# Database connection details
+DB_USER="your_db_username"
+DB_PASS="your_db_password"
+DB_NAME="your_db_name"
+DB_HOST="your_db_host"
+
+# Input parameters
+ENV="$1"
+KEY1="$2"
+KEY2="$3"
+
+# Declare an associative array to store key-value pairs
+declare -A hashmap
+
+# SQL query to fetch data
+query="SELECT VALUE, PARAM1, PARAM2, PARAM3, PARAM4, PARAM5 FROM your_table WHERE ENV='$ENV' AND KEY1='$KEY1' AND KEY2='$KEY2';"
+
+# Connect to the database and execute the query
+output=$(sqlplus -S "$DB_USER/$DB_PASS@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=$DB_HOST)(PORT=1521))(CONNECT_DATA=(SID=$DB_NAME)))" <<EOF
+set pagesize 0
+set feedback off
+set verify off
+set heading off
+set echo off
+$query
+EOF
+)
+
+# Check if output is empty
+if [ -z "$output" ]; then
+    echo "No data found for ENV='$ENV', KEY1='$KEY1', KEY2='$KEY2'"
+    exit 1
+fi
+
+# Process the output and create key-value pairs
+while IFS=" " read -r value param1 param2 param3 param4 param5; do
+    # Concatenate the parameters
+    concatenated_params="${param1}${param2}${param3}${param4}${param5}"
+    # Create the key-value pair
+    key="${ENV}${KEY1}${KEY2}"
+    value="${value},${concatenated_params}"
+    # Store the key-value pair in the hashmap
+    hashmap["$key"]=$value
+done <<< "$output"
+
+# Print the hashmap
+for key in "${!hashmap[@]}"; do
+    echo "Key: $key, Value: ${hashmap[$key]}"
+done
