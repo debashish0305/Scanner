@@ -213,3 +213,15 @@ while IFS= read -r row; do
     # Print the key-value pair
     echo "Key: $key, Value: $value"
 done <<< "$output"
+
+
+set termout off
+set showmode off
+set heading off
+set echo off
+set timing off
+set time off
+set feedback 0
+set pagesize 0
+set embedded ON
+set verify OFF
