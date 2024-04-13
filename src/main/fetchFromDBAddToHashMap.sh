@@ -254,3 +254,31 @@ echo "Param2 value: $param2_value"
 # Further usage of param1_value and param2_value can be done here
 bash script.sh --param1=value1 --param2=value2
 bash script.sh --param1=value1 --param2=value2
+#############################
+
+#!/bin/bash
+
+# Database connection details
+username="your_username"
+password="your_password"
+database="your_database"
+
+# SQL query to select one row from the database
+sql_query="SELECT column1, column2, column3 FROM your_table WHERE condition = 'value';"
+
+# Execute SQL query and store the result in a variable
+result=$(echo "$sql_query" | sqlplus -S "${username}/${password}@${database}")
+
+# Iterate over the result and store columns in variables
+while IFS=' ' read -r col1 col2 col3; do
+    # Print the values of the columns
+    echo "Column 1: $col1"
+    echo "Column 2: $col2"
+    echo "Column 3: $col3"
+    
+    # You can store the values in variables here if needed
+    # For example:
+    # var1="$col1"
+    # var2="$col2"
+    # var3="$col3"
+done <<< "$result"
