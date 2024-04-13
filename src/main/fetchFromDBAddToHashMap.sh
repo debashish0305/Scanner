@@ -282,3 +282,36 @@ while IFS=' ' read -r col1 col2 col3; do
     # var2="$col2"
     # var3="$col3"
 done <<< "$result"
+##########################
+#!/bin/bash
+
+# Database connection details
+username="your_username"
+password="your_password"
+database="your_database"
+
+# Execute SQL query and store the result in a variable
+result=$(sqlplus -S "${username}/${password}@${database}" <<EOF
+SET PAGESIZE 0
+SET FEEDBACK OFF
+SELECT column1, column2, column3 FROM your_table WHERE condition = 'value';
+EOF
+)
+
+# Iterate over the result and store columns in variables
+while read -r col1 col2 col3; do
+    # Store the values of the columns in variables
+    var1="$col1"
+    var2="$col2"
+    var3="$col3"
+    
+    # Print the values of the columns
+    echo "Column 1: $col1"
+    echo "Column 2: $col2"
+    echo "Column 3: $col3"
+    
+    # You can also print the variables if needed
+    echo "Variable 1: $var1"
+    echo "Variable 2: $var2"
+    echo "Variable 3: $var3"
+done <<< "$result"
