@@ -225,3 +225,32 @@ set feedback 0
 set pagesize 0
 set embedded ON
 set verify OFF
+###############
+
+#!/bin/bash
+
+param1_value=""
+param2_value=""
+
+# Parse command-line arguments
+for arg in "$@"; do
+    if [[ $arg == --param1=* ]]; then
+        param1_value="${arg#*=}"
+    elif [[ $arg == --param2=* ]]; then
+        param2_value="${arg#*=}"
+    fi
+done
+
+# Check if both parameters are provided
+if [[ -z $param1_value || -z $param2_value ]]; then
+    echo "Both --param1 and --param2 must be provided"
+    exit 1
+fi
+
+# Use the values
+echo "Param1 value: $param1_value"
+echo "Param2 value: $param2_value"
+
+# Further usage of param1_value and param2_value can be done here
+bash script.sh --param1=value1 --param2=value2
+bash script.sh --param1=value1 --param2=value2
