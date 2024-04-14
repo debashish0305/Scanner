@@ -1,14 +1,14 @@
 import csv
 
 def flatten_json(json_data, parent_key='', separator='.'):
-    items = []
+    items = {}
     for key, value in json_data.items():
         new_key = parent_key + separator + key if parent_key else key
         if isinstance(value, dict):
-            items.extend(flatten_json(value, new_key, separator=separator).items())
+            items.update(flatten_json(value, new_key, separator=separator))
         else:
-            items.append((new_key, value))
-    return dict(items)
+            items[new_key] = value
+    return items
 
 def write_flat_csv(data, file_name):
     with open(file_name, 'w') as csv_file:
@@ -18,11 +18,25 @@ def write_flat_csv(data, file_name):
 
 # Example nested JSON data
 nested_json = {
-    'name': 'Alice',
-    'age': 30,
-    'address': {
-        'city': 'New York',
-        'zipcode': '10001'
+    "d": {
+        "results": [
+            {
+                "meta": {
+                    "id": "1",
+                    "url": "rrr"
+                },
+                "city": "Mumbai",
+                "state": "Maha"
+            },
+            {
+                "meta": {
+                    "id": "2",
+                    "url": "wwrr"
+                },
+                "city": "Bangalore",
+                "state": "KN"
+            }
+        ]
     }
 }
 
