@@ -1,0 +1,30 @@
+import csv
+
+def flatten_json(json_data, parent_key='', separator='.'):
+    items = []
+    for key, value in json_data.items():
+        new_key = parent_key + separator + key if parent_key else key
+        if isinstance(value, dict):
+            items.extend(flatten_json(value, new_key, separator=separator).items())
+        else:
+            items.append((new_key, value))
+    return dict(items)
+
+def write_flat_csv(data, file_name):
+    with open(file_name, 'w') as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow(data.keys())
+        writer.writerow(data.values())
+
+# Example nested JSON data
+nested_json = {
+    'name': 'Alice',
+    'age': 30,
+    'address': {
+        'city': 'New York',
+        'zipcode': '10001'
+    }
+}
+
+flat_data = flatten_json(nested_json)
+write_flat_csv(flat_data, 'flattened_data.csv')
