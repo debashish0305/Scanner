@@ -27,7 +27,7 @@ def json_to_csv(json_data, output_file):
     """
     Convert JSON data to CSV format.
     """
-    results = json_data.get('d', {}).get('results', [])
+    results = json_data.values()[0]
     flat_data = []
     for result in results:
         flat_record = flatten_json(result)
@@ -72,4 +72,4 @@ json_response = {
 
 output_csv_file = "output.csv"
 json_to_csv(json_response, output_csv_file)
-print "JSON response converted to CSV:", output_csv_file
+print("JSON response converted to CSV:", output_csv_file)
