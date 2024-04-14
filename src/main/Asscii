@@ -1,0 +1,39 @@
+import csv
+import json
+
+def flatten_json(json_data, parent_key='', sep='_'):
+    """
+    Flatten nested JSON object.
+    Adapted from: https://stackoverflow.com/a/6027615
+    """
+    items = []
+    for key, value in json_data.items():
+        new_key = parent_key + sep + key if parent_key else key
+        if isinstance(value, dict):
+            items.extend(flatten_json(value, new_key, sep=sep).items())
+        else:
+            items.append((new_key, value))
+    return dict(items)
+
+def json_to_csv(json_file, csv_file):
+    # Read JSON data from file
+    with open(json_file, 'rb') as file:
+        json_data = json.load(file)
+
+    # Flatten JSON data
+    flattened_data = [flatten_json(item) for item in json_data]
+
+    # Extract column headers
+    headers = list(set().union(*(item.keys() for item in flattened_data)))
+
+    # Write to CSV
+    with open(csv_file, 'wb') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=headers)
+        writer.writeheader()
+        for item in flattened_data:
+            writer.writerow({k: v.encode('utf-8') if isinstance(v, unicode) else v for k, v in item.iteritems()})
+
+# Example usage
+json_file = 'input.json'
+csv_file = 'output.csv'
+json_to_csv(json_file, csv_file)
