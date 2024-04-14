@@ -1,0 +1,36 @@
+import json
+
+def read_json(filename):
+    try:
+        with open(filename, 'r') as f:
+            data = json.load(f)
+    except Exception:
+        raise Exception("Error reading {}".format(filename))
+    return data
+
+def flatten_json(data, prev_key=None):
+    flat_data = {}
+    for key, value in data.items():
+        if isinstance(value, dict):
+            nested_data = flatten_json(value, "{}.{}".format(prev_key, key) if prev_key else key)
+            flat_data.update(nested_data)
+        else:
+            flat_data[prev_key[1:]] = value
+    return flat_data
+
+def convert_to_single_node_array(data):
+    single_node_array = []
+    for item in data:
+        flat_item = flatten_json(item)
+        single_node_array.append(flat_item)
+    return single_node_array
+
+# Example usage
+nested_data = read_json('your_nested_data.json')
+single_node_array = convert_to_single_node_array(nested_data)
+
+# Print the result (you can write it to a file if needed)
+for item in single_node_array:
+    print(json.dumps(item))
+
+# Replace the print statement with your desired output handling (e.g., writing to a file)
