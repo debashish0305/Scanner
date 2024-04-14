@@ -7,19 +7,22 @@ def flatten_json(json_obj, parent_key='', sep='_'):
     Flatten nested JSON object to a flat dictionary.
     """
     items = {}
-    for k, v in json_obj.iteritems():
-        new_key = parent_key + sep + k if parent_key else k
-        if isinstance(v, dict):
-            items.update(flatten_json(v, new_key, sep=sep))
-        elif isinstance(v, list):
-            for i, item in enumerate(v):
-                sub_key = "%s%s%s" % (new_key, sep, i)
-                if isinstance(item, dict):
-                    items.update(flatten_json(item, parent_key=sub_key, sep=sep))
-                else:
-                    items[sub_key] = item
-        else:
-            items[new_key] = v
+    if isinstance(json_obj, dict):
+        for k, v in json_obj.iteritems():
+            new_key = parent_key + sep + k if parent_key else k
+            if isinstance(v, dict):
+                items.update(flatten_json(v, new_key, sep=sep))
+            elif isinstance(v, list):
+                for i, item in enumerate(v):
+                    sub_key = "%s%s%s" % (new_key, sep, i)
+                    if isinstance(item, dict):
+                        items.update(flatten_json(item, parent_key=sub_key, sep=sep))
+                    else:
+                        items[sub_key] = item
+            else:
+                items[new_key] = v
+    else:
+        items[parent_key] = json_obj
     return items
 
 
@@ -27,11 +30,10 @@ def json_to_csv(json_data, output_file):
     """
     Convert JSON data to CSV format.
     """
-    results = json_data.values()[0]
     flat_data = []
-    for result in results:
-        flat_record = flatten_json(result)
-        flat_data.append(flat_record)
+    flatten_json_data = flatten_json(json_data)
+    for key, value in flatten_json_data.items():
+        flat_data.append({key: value})
 
     # Get field names from flattened data
     fieldnames = set()
@@ -72,4 +74,4 @@ json_response = {
 
 output_csv_file = "output.csv"
 json_to_csv(json_response, output_csv_file)
-print("JSON response converted to CSV:", output_csv_file)
+print "JSON response converted to CSV:", output_csv_file
