@@ -1,0 +1,75 @@
+import csv
+import json
+
+
+def flatten_json(json_obj, parent_key='', sep='_'):
+    """
+    Flatten nested JSON object to a flat dictionary.
+    """
+    items = {}
+    if isinstance(json_obj, dict):
+        for k, v in json_obj.iteritems():
+            new_key = parent_key + sep + k if parent_key else k
+            if isinstance(v, dict):
+                items.update(flatten_json(v, new_key, sep=sep))
+            elif isinstance(v, list):
+                for i, item in enumerate(v):
+                    sub_key = "%s%s%s" % (new_key, sep, i)
+                    if isinstance(item, dict):
+                        items.update(flatten_json(item, parent_key=sub_key, sep=sep))
+                    else:
+                        items[sub_key] = item
+            else:
+                items[new_key] = v
+    else:
+        items[parent_key] = json_obj
+    return items
+
+
+def json_to_csv(json_data, output_file):
+    """
+    Convert JSON data to CSV format.
+    """
+    flat_data = []
+    if isinstance(json_data, list):
+        for item in json_data:
+            flat_item = flatten_json(item)
+            flat_data.append(flat_item)
+    else:
+        flat_item = flatten_json(json_data)
+        flat_data.append(flat_item)
+
+    # Get field names from flattened data
+    fieldnames = sorted(set().union(*flat_data))
+
+    # Write data to CSV
+    with open(output_file, 'w') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for record in flat_data:
+            writer.writerow(record)
+
+
+# Example usage:
+json_data = [
+    {
+        "id": 1,
+        "name": "John",
+        "details": {
+            "age": 30,
+            "city": "New York"
+        }
+    },
+    {
+        "id": 2,
+        "name": "Alice",
+        "details": {
+            "age": 25,
+            "city": "Los Angeles"
+        }
+    }
+]
+
+output_csv_file = "output.csv"
+json_to_csv(json_data, output_csv_file)
+print("JSON data converted to CSV:", output_csv_file)
