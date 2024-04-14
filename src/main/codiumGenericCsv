@@ -1,44 +1,62 @@
-import csv
+import json
 
-def flatten_json(json_data, parent_key='', separator='.'):
-    items = {}
-    for key, value in json_data.items():
-        new_key = parent_key + separator + key if parent_key else key
-        if isinstance(value, dict):
-            items.update(flatten_json(value, new_key, separator=separator))
-        else:
-            items[new_key] = value
-    return items
 
-def write_flat_csv(data, file_name):
-    with open(file_name, 'w') as csv_file:
-        writer = csv.writer(csv_file)
-        writer.writerow(data.keys())
-        writer.writerow(data.values())
+def flatten_json(y, prefix=""):
+    """Recursively flattens a nested JSON object, creating unique keys.
 
-# Example nested JSON data
-nested_json = {
-    "d": {
-        "results": [
-            {
-                "meta": {
-                    "id": "1",
-                    "url": "rrr"
-                },
-                "city": "Mumbai",
-                "state": "Maha"
-            },
-            {
-                "meta": {
-                    "id": "2",
-                    "url": "wwrr"
-                },
-                "city": "Bangalore",
-                "state": "KN"
-            }
-        ]
-    }
+    Args:
+        y (dict or list): The JSON object to flatten.
+        prefix (str, optional): A prefix to prepend to keys for uniqueness.
+            Defaults to "".
+
+    Returns:
+        dict: A flattened dictionary with unique keys.
+    """
+
+    if isinstance(y, dict):
+        items = []
+        for key, value in y.items():
+            new_key = prefix + key if prefix else key
+            items.extend(flatten_json(value, new_key + "_").items())
+        return dict(items)
+    elif isinstance(y, list):
+        items = []
+        for i, value in enumerate(y):
+            new_key = prefix + str(i) if prefix else str(i)
+            items.extend(flatten_json(value, new_key + "_").items())
+        return dict(items)
+    else:
+        return {prefix: y}  # Handle primitive values with a prefix
+
+
+def json_to_csv(json_data):
+    """Converts a nested JSON object to a CSV string.
+
+    Args:
+        json_data (dict or list): The JSON object to convert.
+
+    Returns:
+        str: The CSV representation of the JSON data.
+    """
+
+    flattened_data = flatten_json(json_data)
+    headers = ",".join(flattened_data.keys())
+    rows = [",".join([str(v) for v in flattened_data.values()])]
+    return "\n".join([headers] + rows)
+
+
+# Example usage
+json_data = {
+    "name": "Alice",
+    "address": {
+        "street": "123 Main St",
+        "city": "Anytown",
+        "state": "CA",
+        "zip": 12345
+    },
+    "phone_numbers": ["555-123-4567", "888-765-4321"],
+    "interests": ["music", "reading", "travel"]
 }
 
-flat_data = flatten_json(nested_json)
-write_flat_csv(flat_data, 'flattened_data.csv')
+csv_string = json_to_csv(json_data)
+print(csv_string)
