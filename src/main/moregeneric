@@ -27,9 +27,11 @@ def json_to_csv(json_data, output_file):
     """
     Convert JSON data to CSV format.
     """
+    results = json_data.get('d', {}).get('results', [])
     flat_data = []
-    flat_record = flatten_json(json_data)
-    flat_data.append(flat_record)
+    for result in results:
+        flat_record = flatten_json(result)
+        flat_data.append(flat_record)
 
     # Get field names from flattened data
     fieldnames = set()
