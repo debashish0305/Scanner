@@ -1,65 +1,75 @@
-import json 
+import csv
+import json
 
-def read_json(filename):  # type: (str) -> dict
-    try: 
-        with open(filename, "r") as f: 
-            data = json.loads(f.read().decode('utf-8'))  # Decode as UTF-8 for Python 2
-    except: 
-        raise Exception("Reading {} file encountered an error".format(filename)) 
 
-    return data 
+def flatten_json(json_obj, parent_key='', sep='_'):
+    """
+    Flatten nested JSON object to a flat dictionary.
+    """
+    items = {}
+    if isinstance(json_obj, dict):
+        for k, v in json_obj.iteritems():
+            new_key = parent_key + sep + k if parent_key else k
+            if isinstance(v, dict):
+                items.update(flatten_json(v, new_key, sep=sep))
+            elif isinstance(v, list):
+                for i, item in enumerate(v):
+                    sub_key = "%s%s%s" % (new_key, sep, i)
+                    if isinstance(item, dict):
+                        items.update(flatten_json(item, parent_key=sub_key, sep=sep))
+                    else:
+                        items[sub_key] = item
+            else:
+                items[new_key] = v
+    else:
+        items[parent_key] = json_obj
+    return items
 
-def normalize_json(data):  # type: (dict) -> dict
-    new_data = dict() 
-    for key, value in data.items(): 
-        if not isinstance(value, dict): 
-            new_data[key] = value 
-        else: 
-            for k, v in value.items(): 
-                new_data[key + "_" + k] = v 
-    return new_data 
 
-def generate_csv_data(data):  # type: (dict) -> str
-    # Defining CSV columns in a list to maintain 
-    # the order 
-    csv_columns = data.keys() 
+def json_to_csv(json_data, output_file):
+    """
+    Convert JSON data to CSV format.
+    """
+    flat_data = []
+    if isinstance(json_data, list):
+        for item in json_data:
+            flat_item = flatten_json(item)
+            flat_data.append(flat_item)
+    else:
+        flat_item = flatten_json(json_data)
+        flat_data.append(flat_item)
 
-    # Generate the first row of CSV 
-    csv_data = ",".join(csv_columns) + "\n"
+    # Get field names from flattened data
+    fieldnames = sorted(set().union(*flat_data))
 
-    # Generate the single record present 
-    new_row = list() 
-    for col in csv_columns: 
-        new_row.append(str(data[col])) 
+    # Write data to CSV
+    with open(output_file, 'w') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for record in flat_data:
+            writer.writerow(record)
 
-    # Concatenate the record with the column information 
-    # in CSV format 
-    csv_data += ",".join(new_row) + "\n"
 
-    return csv_data 
+# Example usage:
+json_data = [
+    {
+        "id": 1,
+        "name": "John",
+        "details": {
+            "age": 30,
+            "city": "New York"
+        }
+    },
+    {
+        "id": 2,
+        "name": "Alice",
+        "details": {
+            "age": 25,
+            "city": "Los Angeles"
+        }
+    }
+]
 
-def write_to_file(data, filepath):  # type: (str, str) -> bool
-    try: 
-        with open(filepath, "w+") as f: 
-            f.write(data.encode('utf-8'))  # Encode as UTF-8 for Python 2
-    except: 
-        raise Exception("Saving data to {} encountered an error".format(filepath)) 
-
-def main(): 
-    # Read the JSON file as python dictionary 
-    data = read_json(filename="article.json") 
-
-    # Normalize the nested python dict 
-    new_data = normalize_json(data=data) 
-
-    # Pretty print the new dict object 
-    print "New dict:", new_data  # Print statement for Python 2
-
-    # Generate the desired CSV data 
-    csv_data = generate_csv_data(data=new_data) 
-
-    # Save the generated CSV data to a CSV file 
-    write_to_file(data=csv_data, filepath="data.csv") 
-
-if __name__ == '__main__': 
-    main() 
+output_csv_file = "output.csv"
+json_to_csv(json_data, output_csv_file)
+print "JSON data converted to CSV:", output_csv_file
