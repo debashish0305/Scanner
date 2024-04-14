@@ -36,13 +36,11 @@ def json_to_csv(json_data, output_file):
         flat_data.append({key: value})
 
     # Get field names from flattened data
-    fieldnames = set()
-    for record in flat_data:
-        fieldnames.update(record.keys())
+    fieldnames = sorted(flat_data[0].keys())
 
     # Write data to CSV
     with open(output_file, 'w') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=sorted(fieldnames))
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         for record in flat_data:
             writer.writerow(record)
