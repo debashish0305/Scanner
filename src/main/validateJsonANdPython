@@ -1,0 +1,53 @@
+########################Python
+
+import json
+
+def is_valid_json(json_file):
+    try:
+        with open(json_file, 'r') as file:
+            json.load(file)
+        return True
+    except ValueError as e:
+        print("Error: Invalid JSON:", e)
+        return False
+
+# Example usage
+json_file = 'path/to/your/json_file.json'
+
+if is_valid_json(json_file):
+    print("The file contains valid JSON.")
+else:
+    print("The file does not contain valid JSON.")
+
+  #######################
+  #!/bin/bash
+
+csv_file="$1"
+
+# Check if the file exists
+if [ ! -f "$csv_file" ]; then
+    echo "Error: CSV file '$csv_file' does not exist."
+    exit 1
+fi
+
+# Check if the file is empty
+if [ ! -s "$csv_file" ]; then
+    echo "Error: CSV file '$csv_file' is empty."
+    exit 1
+fi
+
+# Check if the file has a header
+header=$(head -n 1 "$csv_file")
+if [ -z "$header" ]; then
+    echo "Error: CSV file '$csv_file' has an empty header."
+    exit 1
+fi
+
+# Check if the file has at least one data row
+data_rows=$(tail -n +2 "$csv_file")
+if [ -z "$data_rows" ]; then
+    echo "Error: CSV file '$csv_file' has no data rows."
+    exit 1
+fi
+
+echo "CSV file '$csv_file' is valid."
