@@ -20,3 +20,37 @@ new_date=$(date -d "$input_date $offset_value days" "+$date_format")
 
 # Printing the new date
 echo "$new_date"
+
+
+########################################
+
+
+#!/bin/bash
+
+# Input string
+input="CURR_DATE||+%Y-%m-%d||OFFSET=+5"
+
+# Split the input string by "||"
+IFS="||" read -ra parts <<< "$input"
+
+# Print all parts
+for part in "${parts[@]}"; do
+    echo "Part: $part"
+done
+
+# Check if the first part is "CURR_DATE"
+if [[ "${parts[0]}" == "CURR_DATE" ]]; then
+    # Get the format from the second part
+    format="${parts[1]}"
+    # Get the offset from the third part
+    offset=$(echo "${parts[2]}" | cut -d'=' -f2)
+    
+    # Get the current system date
+    current_date=$(date +"$format")
+
+    # Apply offset to the current date
+    next_date=$(date -d "$current_date $offset day" +"$format")
+    
+    echo "Current date: $current_date"
+    echo "Next date: $next_date"
+fi
