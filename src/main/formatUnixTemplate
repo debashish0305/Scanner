@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Get the input date from the command line argument
+input_date=$1
+
+# Template definition
+template='+%Y-%m-%d||OFFSET=+5'
+
+# Splitting the template by '||'
+IFS='||' read -r format offset <<< "$template"
+
+# Extracting the date format from the first part of the template
+date_format=$(echo "$format" | cut -d'+' -f1)
+
+# Extracting the offset value from the second part of the template
+offset_value=$(echo "$offset" | cut -d'=' -f2)
+
+# Calculating the new date based on the offset
+new_date=$(date -d "$input_date $offset_value days" "+$date_format")
+
+# Printing the new date
+echo "$new_date"
