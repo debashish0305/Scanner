@@ -22,6 +22,21 @@ new_date=$(date -d "$input_date $offset_value days" "+$date_format")
 echo "$new_date"
 
 
+##############
+
+#!/bin/bash
+
+# Define the string
+input_string="CURR_DATE||+%y-%m-%d||OFFSET=+5"
+
+# Split the string by "||"
+IFS='||' read -r var1 var2 var3 <<< "${input_string//||/|}"
+
+# Print each variable
+echo "Variable 1: $var1"
+echo "Variable 2: $var2"
+echo "Variable 3: $var3"
+
 ########################################
 
 
