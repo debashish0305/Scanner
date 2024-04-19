@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Your INSERT and UPDATE commands
+insert_command="INSERT INTO your_table VALUES (...)"
+update_command="UPDATE your_table SET ... WHERE ..."
+
+# SQL*Plus commands to execute SQL commands and control transaction
+sqlplus -S username/password@database <<EOF
+SET AUTOCOMMIT OFF
+WHENEVER SQLERROR EXIT SQL.SQLCODE ROLLBACK
+$insert_command
+$update_command
+COMMIT;
+EXIT;
+EOF
+
+# Check the return code of SQL*Plus
+if [ $? -eq 0 ]; then
+    echo "Transaction committed successfully."
+else
+    echo "Error occurred. Transaction rolled back."
+fi
