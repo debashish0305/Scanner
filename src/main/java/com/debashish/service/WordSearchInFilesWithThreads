@@ -1,0 +1,116 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class WordSearchInFilesWithThreads {
+
+    private static final int CHUNK_SIZE = 1000;
+
+    public static void main(String[] args) throws IOException {
+        if (args.length != 2) {
+            System.out.println("Usage: java WordSearchInFilesWithThreads <project_folder_path> <search_words_file_path>");
+            return;
+        }
+
+        String projectFolderPath = args[0];
+        String searchWordsFilePath = args[1];
+
+        List<Set<String>> searchWordChunks = loadSearchWordChunks(searchWordsFilePath);
+
+        if (searchWordChunks.isEmpty()) {
+            System.out.println("No search words provided.");
+            return;
+        }
+
+        ExecutorService executor = Executors.newFixedThreadPool(searchWordChunks.size());
+
+        Path projectFolder = Paths.get(projectFolderPath);
+        if (!Files.isDirectory(projectFolder)) {
+            System.out.println("Invalid project folder path.");
+            return;
+        }
+
+        for (Set<String> searchWords : searchWordChunks) {
+            Runnable task = new SearchTask(projectFolder, searchWords);
+            executor.execute(task);
+        }
+
+        executor.shutdown();
+    }
+
+    private static List<Set<String>> loadSearchWordChunks(String searchWordsFilePath) throws IOException {
+        List<Set<String>> searchWordChunks = new ArrayList<>();
+        Set<String> chunk = new HashSet<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(searchWordsFilePath))) {
+            String line;
+            int wordCount = 0;
+            while ((line = reader.readLine()) != null) {
+                chunk.add(line.trim());
+                wordCount++;
+                if (wordCount == CHUNK_SIZE) {
+                    searchWordChunks.add(new HashSet<>(chunk));
+                    chunk.clear();
+                    wordCount = 0;
+                }
+            }
+            if (!chunk.isEmpty()) {
+                searchWordChunks.add(new HashSet<>(chunk));
+            }
+        }
+        return searchWordChunks;
+    }
+
+    private static class SearchTask implements Runnable {
+        private Path projectFolder;
+        private Set<String> searchWords;
+
+        public SearchTask(Path projectFolder, Set<String> searchWords) {
+            this.projectFolder = projectFolder;
+            this.searchWords = searchWords;
+        }
+
+        @Override
+        public void run() {
+            try {
+                Files.walkFileTree(projectFolder, new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        searchWordsInFile(file, searchWords);
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    @Override
+                    public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+                        System.err.println("Failed to access file: " + file + " - " + exc);
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void searchWordsInFile(Path file, Set<String> searchWords) throws IOException {
+            try (BufferedReader reader = Files.newBufferedReader(file)) {
+                String line;
+                int lineNumber = 1;
+                while ((line = reader.readLine()) != null) {
+                    for (String word : searchWords) {
+                        if (line.contains(word)) {
+                            System.out.println("Word '" + word + "' found in file: " + file + " at line " + lineNumber);
+                        }
+                    }
+                    lineNumber++;
+                }
+            }
+        }
+    }
+}
