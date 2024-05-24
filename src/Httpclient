@@ -1,0 +1,53 @@
+import java.net.URI;
+import java.net.InetSocketAddress;
+import java.net.ProxySelector;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+public class HttpClientWithProxyExample {
+    public static void main(String[] args) {
+        try {
+            // Replace with your API endpoint
+            String url = "https://your-api-endpoint.com/endpoint";
+            // Replace with your actual bearer token
+            String token = "your_bearer_token";
+
+            // JSON payload
+            String json = "{\"key1\":\"value1\", \"key2\":\"value2\"}";
+
+            // Proxy settings
+            String proxyHost = "your.proxy.host";
+            int proxyPort = 8080; // Replace with your proxy port
+
+            // Create a proxy selector
+            ProxySelector proxySelector = ProxySelector.of(new InetSocketAddress(proxyHost, proxyPort));
+
+            // Create an HttpClient with proxy
+            HttpClient client = HttpClient.newBuilder()
+                    .proxy(proxySelector)
+                    .build();
+
+            // Create an HttpRequest
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(new URI(url))
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", "Bearer " + token)
+                    .POST(BodyPublishers.ofString(json, StandardCharsets.UTF_8))
+                    .build();
+
+            // Send the request and get the response
+            HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+
+            // Print the response status code and body
+            System.out.println("Status code: " + response.statusCode());
+            System.out.println("Response body: " + response.body());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
