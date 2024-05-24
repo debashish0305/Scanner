@@ -1,15 +1,16 @@
-import java.net.URI;
-import java.net.InetSocketAddress;
-import java.net.ProxySelector;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.http.HttpRequest.BodyPublishers;
-import java.net.http.HttpResponse.BodyHandlers;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
+ import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 
-public class HttpClientWithProxyExample {
+import java.io.IOException;
+
+public class ApacheHttpClientWithProxyExample {
     public static void main(String[] args) {
         try {
             // Replace with your API endpoint
@@ -24,29 +25,40 @@ public class HttpClientWithProxyExample {
             String proxyHost = "your.proxy.host";
             int proxyPort = 8080; // Replace with your proxy port
 
-            // Create a proxy selector
-            ProxySelector proxySelector = ProxySelector.of(new InetSocketAddress(proxyHost, proxyPort));
-
-            // Create an HttpClient with proxy
-            HttpClient client = HttpClient.newBuilder()
-                    .proxy(proxySelector)
+            // Create request configuration with proxy
+            RequestConfig config = RequestConfig.custom()
+                    .setProxy(new HttpHost(proxyHost, proxyPort))
                     .build();
 
-            // Create an HttpRequest
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI(url))
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", "Bearer " + token)
-                    .POST(BodyPublishers.ofString(json, StandardCharsets.UTF_8))
+            // Create an HttpClient with request configuration
+            HttpClient client = HttpClients.custom()
+                    .setDefaultRequestConfig(config)
                     .build();
 
-            // Send the request and get the response
-            HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+            // Create an HttpPost with the URL
+            HttpPost httpPost = new HttpPost(url);
+
+            // Set headers
+            httpPost.setHeader("Content-Type", "application/json");
+            httpPost.setHeader("Authorization", "Bearer " + token);
+
+            // Set JSON payload
+            StringEntity entity = new StringEntity(json, ContentType.APPLICATION_JSON);
+            httpPost.setEntity(entity);
+
+            // Execute the request
+            HttpResponse response = client.execute(httpPost);
+
+            // Get the response entity
+            HttpEntity responseEntity = response.getEntity();
+
+            // Convert response entity to string
+            String responseBody = EntityUtils.toString(responseEntity);
 
             // Print the response status code and body
-            System.out.println("Status code: " + response.statusCode());
-            System.out.println("Response body: " + response.body());
-        } catch (Exception e) {
+            System.out.println("Status code: " + response.getStatusLine().getStatusCode());
+            System.out.println("Response body: " + responseBody);
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
