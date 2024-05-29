@@ -1,0 +1,7 @@
+insert_job: file_watcher_job
+job_type: jw
+watch_file: /path/to/your/file_to_watch.txt
+owner: your_username
+permission: gx
+alarm_if_fail: 1
+std_out_file: /path/to/your/log_file.log
