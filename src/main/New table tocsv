@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# Database credentials
+DB_HOST="your_database_host"
+DB_PORT="your_database_port"  # Default is 1521
+DB_USER="your_database_user"
+DB_PASS="your_database_password"
+DB_SERVICE="your_database_service"
+
+# SQL query to retrieve distinct IDs
+ID_QUERY="SELECT DISTINCT id FROM your_table;"
+
+# Function to run a query and get results
+function get_ids {
+    sqlplus -s ${DB_USER}/${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_SERVICE} <<EOF
+SET PAGESIZE 0
+SET FEEDBACK OFF
+SET TRIMOUT ON
+SET TRIMSPOOL ON
+SET UNDERLINE OFF
+SET HEADING OFF
+${ID_QUERY}
+EXIT;
+EOF
+}
+
+# Capture the IDs into an array
+ID_LIST=($(get_ids))
+
+# SQL query template
+SQL_QUERY_TEMPLATE="SELECT column1, column2, column3 FROM your_table WHERE id = %d;"
+
+# Iterate over each ID and generate a corresponding CSV file
+for ID in "${ID_LIST[@]}"; do
+    # Output file name
+    OUTPUT_FILE="output_${ID}.csv"
+    
+    # Formulate the SQL query
+    SQL_QUERY=$(printf "$SQL_QUERY_TEMPLATE" "$ID")
+    
+    # Connect to Oracle Database and execute the query
+    sqlplus -s ${DB_USER}/${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_SERVICE} <<EOF
+SET PAGESIZE 50000
+SET LINESIZE 32767
+SET FEEDBACK OFF
+SET TRIMOUT ON
+SET TRIMSPOOL ON
+SET UNDERLINE OFF
+SET COLSEP ','
+SET HEADSEP OFF
+SET ECHO OFF
+SET NEWPAGE NONE
+SPOOL ${OUTPUT_FILE}
+${SQL_QUERY}
+SPOOL OFF
+EXIT;
+EOF
+
+    echo "Query result for ID ${ID} has been saved to ${OUTPUT_FILE}"
+done
