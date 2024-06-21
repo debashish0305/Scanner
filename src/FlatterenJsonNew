@@ -1,0 +1,68 @@
+import json
+import csv
+
+# Sample nested JSON data
+json_data = '''
+[
+    {
+        "id": 1,
+        "name": "John",
+        "address": {
+            "street": "1234 Elm St",
+            "city": "Somewhere",
+            "state": "CA"
+        },
+        "contacts": [
+            {"type": "email", "value": "john@example.com"},
+            {"type": "phone", "value": "123-456-7890"}
+        ]
+    },
+    {
+        "id": 2,
+        "name": "Jane",
+        "address": {
+            "street": "5678 Oak St",
+            "city": "Anywhere",
+            "state": "NY"
+        },
+        "contacts": [
+            {"type": "email", "value": "jane@example.com"},
+            {"type": "phone", "value": "987-654-3210"}
+        ]
+    }
+]
+'''
+
+# Function to flatten the JSON
+def flatten_json(nested_json, parent_key='', sep='_'):
+    items = {}
+    for key, value in nested_json.items():
+        new_key = '{}{}{}'.format(parent_key, sep, key) if parent_key else key
+        if isinstance(value, dict):
+            items.update(flatten_json(value, new_key, sep=sep))
+        elif isinstance(value, list):
+            for i, v in enumerate(value):
+                items.update(flatten_json({ '{}{}{}'.format(new_key, sep, i): v }, '', sep=sep))
+        else:
+            items[new_key] = value
+    return items
+
+# Load JSON data
+data = json.loads(json_data)
+
+# Flatten the JSON data
+flattened_data = [flatten_json(record) for record in data]
+
+# Get all unique keys from the flattened data
+keys = set()
+for record in flattened_data:
+    keys.update(record.keys())
+keys = sorted(keys)
+
+# Write the flattened data to a CSV file
+with open('flattened_data.csv', 'w', newline='') as csvfile:
+    writer = csv.DictWriter(csvfile, fieldnames=keys)
+    writer.writeheader()
+    writer.writerows(flattened_data)
+
+print("Data has been flattened and written to flattened_data.csv")
