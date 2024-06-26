@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Directory containing the CSV files
+CSV_DIR="path/to/your/csv/files"
+
+# SQL*Loader control file template
+CONTROL_FILE_TEMPLATE="control_file_template.ctl"
+
+# Temporary control file
+TEMP_CONTROL_FILE="temp_control.ctl"
+
+# Oracle database credentials
+ORACLE_USER="your_username"
+ORACLE_PASSWORD="your_password"
+ORACLE_SID="your_database_sid"
+
+# Create the temporary control file
+{
+  # Read the control file template and print it to the temporary control file
+  while IFS= read -r line
+  do
+    # After 'LOAD DATA', insert the INFILE lines
+    if [[ "$line" == "LOAD DATA" ]]; then
+      echo "$line"
+      for CSV_FILE in "$CSV_DIR"/*.csv
+      do
+        echo "INFILE '$CSV_FILE'"
+      done
+    else
+      echo "$line"
+    fi
+  done < "$CONTROL_FILE_TEMPLATE"
+} > "$TEMP_CONTROL_FILE"
+
+# Load the CSV files into the Oracle database using sqlldr
+sqlldr $ORACLE_USER/$ORACLE_PASSWORD@$ORACLE_SID control=$TEMP_CONTROL_FILE log="load.log" bad="load.bad"
+
+# Optionally, remove the temporary control file
+# rm $TEMP_CONTROL_FILE
+
+echo "Completed loading all CSV files from $CSV_DIR"
