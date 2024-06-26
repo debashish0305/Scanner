@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# API endpoint URL
+API_URL="http://your-api-endpoint.com/api"
+
+# Number of parallel processes
+PARALLEL_COUNT=10
+
+# Total number of API calls to make
+TOTAL_CALLS=100
+
+# Function to make API call with curl
+call_api() {
+    local index=$1
+    curl -s -X GET "$API_URL?param=$index" -o "response_$index.json"
+}
+
+export -f call_api
+
+# Function to make parallel API calls with a 5-second interval
+make_parallel_api_calls() {
+    local start_index=$1
+    local end_index=$2
+
+    # Generate sequence of indices from start_index to end_index
+    seq $start_index $end_index |
+    # Pipe into parallel to run in parallel with PARALLEL_COUNT processes
+    parallel -j $PARALLEL_COUNT call_api {}
+
+    # Sleep for 5 seconds after each batch of parallel calls
+    sleep 5
+}
+
+# Loop to make API calls in batches with a 5-second interval
+for (( i=1; i<=$TOTAL_CALLS; i+=$PARALLEL_COUNT ))
+do
+    start_index=$i
+    end_index=$(( $i + $PARALLEL_COUNT - 1 ))
+
+    # Ensure end_index does not exceed TOTAL_CALLS
+    if [ $end_index -gt $TOTAL_CALLS ]; then
+        end_index=$TOTAL_CALLS
+    fi
+
+    make_parallel_api_calls $start_index $end_index
+done
+
+echo "Completed making $TOTAL_CALLS API calls in parallel batches of $PARALLEL_COUNT with a 5-second interval."
