@@ -1,4 +1,14 @@
 #!/bin/bash
+#!/bin/bash
+
+# Example URL stored in a variable
+url='http://example.com/api?param1=value1&size=100&param2=value2'
+
+# Replace the size parameter value with 1
+new_url=$(echo "$url" | sed 's/size=[0-9]*/size=1/')
+
+# Print the modified URL
+echo "$new_url"
 
 # Example JSON response stored in a variable
 response='{
