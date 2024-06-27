@@ -74,3 +74,16 @@ node2=$(echo "$response" | sed -n 's/.*"node2":\({[^}]*}\).*/\1/p')
 name=$(echo "$node2" | sed -n 's/.*"name":"\([^"]*\)".*/\1/p')
 
 echo "Name from node2: $name"
+#!/bin/bash
+
+# Example JSON response stored in a variable
+response='{
+  "id": 100,
+  "name": "singleItem",
+  "salary": 12345
+}'
+
+# Extracting the salary field
+salary=$(echo "$response" | grep -o '"salary": *[0-9]*' | sed 's/"salary": *\([0-9]*\)/\1/')
+
+echo "Salary: $salary"
