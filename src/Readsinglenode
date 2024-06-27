@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Example JSON response stored in a variable
+response='{
+  "node1": [
+    {
+      "id": 1,
+      "name": "item1"
+    },
+    {
+      "id": 2,
+      "name": "item2"
+    }
+  ],
+  "node2": {
+    "id": 100,
+    "name": "singleItem"
+  }
+}'
+
+# Extracting the name field from node2 using grep and sed
+name=$(echo "$response" | grep -o '"node2":{[^}]*}' | grep -o '"name":"[^"]*"' | sed 's/"name":"\([^"]*\)"/\1/')
+
+echo "Name from node2: $name"
