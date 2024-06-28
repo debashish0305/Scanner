@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Function to append a query parameter to a URL
+append_query_param() {
+  local url=$1
+  local param=$2
+
+  if [[ "$url" == *\?* ]]; then
+    # URL already has a query string, append the parameter with &
+    echo "${url}&${param}"
+  else
+    # URL does not have a query string, add the parameter with ?
+    echo "${url}?${param}"
+  fi
+}
+
+# Example usage
+original_url="https://example.com/path/to/resource"
+query_param="new_param=value"
+
+new_url=$(append_query_param "$original_url" "$query_param")
+echo "Original URL: $original_url"
+echo "New URL: $new_url"
