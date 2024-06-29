@@ -1,0 +1,27 @@
+#!/bin/bash
+
+path_to_check="/path/to/your/directory_or_file"
+
+if [ -f "$path_to_check" ]; then
+    echo "Path is a file."
+    if [ -e "$path_to_check" ]; then
+        echo "File exists."
+    else
+        echo "File does not exist."
+    fi
+elif [ -d "$path_to_check" ]; then
+    echo "Path is a directory."
+    echo "Checking for JSON files with 'status' keyword in directory: $path_to_check"
+    
+    # Search for JSON files with 'status' keyword in the directory
+    json_files=$(find "$path_to_check" -type f -name "*.json" -exec grep -l "status" {} +)
+    
+    if [ -n "$json_files" ]; then
+        echo "JSON files with 'status' keyword found:"
+        echo "$json_files"
+    else
+        echo "No JSON files with 'status' keyword found."
+    fi
+else
+    echo "Path does not exist or is not valid."
+fi
