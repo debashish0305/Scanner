@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Define the folder to zip and the destination folder
+source_folder="/path/to/source_folder"
+destination_folder="/path/to/destination_folder"
+
+# Get the current timestamp
+timestamp=$(date +"%Y%m%d_%H%M%S")
+
+# Define the custom name for the zip file
+custom_name="my_custom_name"
+
+# Create the zip file with the custom name and timestamp
+zip_filename="${custom_name}_${timestamp}.zip"
+
+# Zip all files in the source folder
+zip -r "$zip_filename" "$source_folder"/*
+
+# Move the zip file to the destination folder
+mv "$zip_filename" "$destination_folder"
+
+# Print the result
+echo "Created and moved zip file: $destination_folder/$zip_filename"
